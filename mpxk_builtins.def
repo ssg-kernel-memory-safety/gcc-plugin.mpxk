@@ -1,0 +1,38 @@
+/*
+ * mpxk_builtins.def - Contain the MPXK wrapper definitions
+ *
+ * This is just kept here to centralize these names definitions.
+ *
+ * Copyright (C) 2017 Hans Liljestrand <LiljestrandH@gmail.com>
+ *
+ * This file is released under the GPLv2.
+ */
+
+MPXK_BUILTIN_DEF(void *, mpxk_load_bounds, void *p)
+
+MPXK_WRAPPER_DEF(void *, kmalloc, size_t s, gfp_t f)
+MPXK_WRAPPER_DEF(void *, krealloc, void *p, size_t s, gfp_t f)
+
+MPXK_WRAPPER_DEF(void *, memmove, void *d, const void *s, size_t c)
+MPXK_WRAPPER_DEF(void *, memcpy, void *d, const void *s, size_t c)
+
+MPXK_WRAPPER_DEF(void *, memset, void *s, int c, size_t l)
+MPXK_WRAPPER_DEF(char *, strcat, char *d, const char *s)
+MPXK_WRAPPER_DEF(char *, strncat, char *d, const char *s, size_t c)
+MPXK_WRAPPER_DEF(char *, strcpy, char *d, const char *s)
+MPXK_WRAPPER_DEF(char *, strncpy, char *d, const char *s, size_t c)
+MPXK_WRAPPER_DEF(size_t, strlen, const char *s)
+MPXK_WRAPPER_DEF(size_t, strnlen, const char *s, size_t c)
+
+/* libmpx wrappers
+__mpx_wrapper_malloc; - malloc in linux/decompress/mm.h only for pre-boot
+__mpx_wrapper_mmap; - N/A
+__mpx_wrapper_realloc; - N/A
+__mpx_wrapper_calloc; - N/A
+__mpx_wrapper_bzero; - N/A
+__mpx_wrapper_mempcpy; - N/A
+__mpx_wrapper_stpcpy; - N/A
+__mpx_wrapper_stpncpy; - N/A
+*/
+
+// vim: ft=cpp
