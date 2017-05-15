@@ -7,32 +7,44 @@
  *
  * This file is released under the GPLv2.
  */
+#ifndef MPXK_PTR
+#define MPXK_PTR(x) x
+#define MPXK_UNSET_PTR 1
+#endif /* MPXK_PTR */
 
-MPXK_BUILTIN_DEF(void *, mpxk_load_bounds, void *p)
+#ifndef MPXK_NR
+#define MPXK_NR(x) x
+#define MPXK_UNSET_NR 1
+#endif /* MPXK_NR */
 
-MPXK_WRAPPER_DEF(void *, kmalloc, size_t s, gfp_t f)
-MPXK_WRAPPER_DEF(void *, krealloc, void *p, size_t s, gfp_t f)
+#ifndef MPXK_VOID
+#define MPXK_VOID(x) x
+#define MPXK_UNSET_VOID 1
+#endif /* MPXK_VOID */
 
-MPXK_WRAPPER_DEF(void *, memmove, void *d, const void *s, size_t c)
-MPXK_WRAPPER_DEF(void *, memcpy, void *d, const void *s, size_t c)
+#ifndef MPXK_BODY
+#define MPXK_BODY(x) x
+#define MPXK_UNSET_BODY 1
+#endif /* MPXK_VOID */
 
-MPXK_WRAPPER_DEF(void *, memset, void *s, int c, size_t l)
-MPXK_WRAPPER_DEF(char *, strcat, char *d, const char *s)
-MPXK_WRAPPER_DEF(char *, strncat, char *d, const char *s, size_t c)
-MPXK_WRAPPER_DEF(char *, strcpy, char *d, const char *s)
-MPXK_WRAPPER_DEF(char *, strncpy, char *d, const char *s, size_t c)
-MPXK_WRAPPER_DEF(size_t, strlen, const char *s)
-MPXK_WRAPPER_DEF(size_t, strnlen, const char *s, size_t c)
+MPXK_BUILTIN_DEF(void *, 	mpxk_load_bounds, 	MPXK_PTR(void * p))
+MPXK_WRAPPER_DEF(void *, 	kmalloc, 		MPXK_NR(size_t p), MPXK_NR(gfp_t f))
 
-/* libmpx wrappers
-__mpx_wrapper_malloc; - malloc in linux/decompress/mm.h only for pre-boot
-__mpx_wrapper_mmap; - N/A
-__mpx_wrapper_realloc; - N/A
-__mpx_wrapper_calloc; - N/A
-__mpx_wrapper_bzero; - N/A
-__mpx_wrapper_mempcpy; - N/A
-__mpx_wrapper_stpcpy; - N/A
-__mpx_wrapper_stpncpy; - N/A
-*/
+#ifdef MPXK_UNSET_PTR
+#undef MPXK_UNSET_PTR
+#undef MPXK_PTR
+#endif
+#ifdef MPXK_UNSET_NR
+#undef MPXK_UNSET_NR
+#undef MPXK_NR
+#endif
+#ifdef MPXK_UNSET_PTR
+#undef MPXK_UNSET_PTR
+#undef MPXK_PTR
+#endif
+#ifdef MPXK_UNSET_BODY
+#undef MPXK_UNSET_BODY
+#undef MPXK_BODy
+#endif
 
 // vim: ft=cpp

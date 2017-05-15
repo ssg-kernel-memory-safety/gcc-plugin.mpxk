@@ -14,7 +14,6 @@ OBJ += mpxk_pass_wrappers.o
 OBJ += mpxk_pass_bnd_store.o
 OBJ += mpxk_pass_rm_bndstx.o
 OBJ += mpxk_pass_cfun_args.o
-OBJ += mpxk_pass_sweeper.o
 
 SRC := $(OBJ:.o=.c)
 

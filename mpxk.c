@@ -9,14 +9,17 @@
 #include <tree-chkp.h>
 #include <ipa-chkp.h>
 
-/* #define d(f,...) dsay(f,__VA_ARGS__) */
+/*
+ * #define d(f,...) dsay(f,__VA_ARGS__)
+ */
 #define d(...)
 
 static void mpxk_plugin_finish(void *gcc_data, void *user_data);
 static tree get_load_fndecl(void);
 
-struct mpxk_bound_store_stats mpxk_stats = { .dropped_ldx = 0, .dropped_stx = 0, .dropped_stx_brute = 0,
-	.wrappers_added = 0, .sweep_ldx = 0, .cfun_ldx = 0, .sweep_stx = 0 };
+struct mpxk_bound_store_stats mpxk_stats = {0};
+
+static tree init_bounds;
 
 __visible int plugin_is_GPL_compatible;
 
@@ -28,6 +31,7 @@ static struct plugin_info mpxk_plugin_info = {
 __visible int plugin_init(struct plugin_name_args *plugin_info, struct plugin_gcc_version *version)
 {
 	const char * const plugin_name = plugin_info->base_name;
+	int err;
 
 	if (!plugin_default_version_check(version, &gcc_version)) {
 		error(G_("incompatible gcc/plugin versions"));
@@ -45,26 +49,21 @@ __visible int plugin_init(struct plugin_name_args *plugin_info, struct plugin_gc
 
 	/* Replace wrappables with mpxk_wrappers. */
 	register_callback(plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,
-			  get_mpxk_wrappers_pass_info());
+			get_mpxk_wrappers_pass_info());
 
 	/* Remove bndldx/bndstx calls.*/
 	register_callback(plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,
-			  get_mpxk_bnd_store_pass_info());
+			get_mpxk_bnd_store_pass_info());
 
 	/* Handle incoming bounds arguments. */
 	register_callback(plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,
-			  get_mpxk_cfun_args_pass_info());
+			get_mpxk_cfun_args_pass_info());
 
 	/* Brute force approach of just dropping all BNDSTX instructions.
 	 * These get added in the RTL expand pass for function calls (and
 	 * potentially other cases */
 	register_callback(plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,
-			  get_mpxk_rm_bndstx_pass_info());
-
-	/* Replace wrappables with mpxk_wrappers. */
-	register_callback(plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,
-			  get_mpxk_sweeper_pass_info());
-
+					  get_mpxk_rm_bndstx_pass_info());
 
 	return 0;
 }
@@ -74,38 +73,9 @@ __visible int plugin_init(struct plugin_name_args *plugin_info, struct plugin_gc
  * Just dump some information on what we've done */
 static void mpxk_plugin_finish(void *gcc_data, void *user_data)
 {
-	(void) gcc_data;
-	(void) user_data;
-	expanded_location loc = expand_location(input_location);
-#if defined(MPXK_DEBUG) || defined(MPXK_SUMMARY)
-	fprintf(stderr, "SUMMARY: bndstx[%d+%d=>%d], bndldx[%d+%d=>%d], wraps[%d] (%s)\n",
-			mpxk_stats.dropped_stx, mpxk_stats.dropped_stx_brute, mpxk_stats.sweep_stx,
-			mpxk_stats.dropped_ldx, mpxk_stats.cfun_ldx, mpxk_stats.sweep_ldx,
-			mpxk_stats.wrappers_added, loc.file);
-#endif
-
-	if (mpxk_stats.sweep_ldx || mpxk_stats.sweep_stx) {
-#ifdef MPXK_CRASH_ON_SWEEP
-		internal_error("Unhandled bndstx/bndldx instructions in %s\n", loc.file);
-#else
-		fprintf(stderr, "Unhandled bndstx/bndldx instructions in %s\n", loc.file);
-#endif /* MPXK_CRASH_ON_SWEEP */
-	}
-}
-
-bool skip_execute(const char *attr) {
-#ifdef MPXK_DO_NOTHIN
-	return true;
-#endif /* MPXK_DO_NOTHIN */
-	if (attr != NULL && lookup_attribute(attr, DECL_ATTRIBUTES(cfun->decl)) != NULL)
-		return true;
-#ifdef MPXK_ONLY_PROCESS
-	const char *name = DECL_NAME_POINTER(current_function_decl);
-	if (0 != strcmp(MPXK_ONLY_PROCESS, name) &&
-			0 != strcmp(MPXK_ONLY_PROCESS ".chkp", name))
-		return true;
-#endif /* MPXK_ONLY_PROCESS */
-	return false;
+	dsay("%d+%d BNDSTX, %d BNDLDX calls, %d wrappers\n", __FILE__, __LINE__, __func__,
+			mpxk_stats.dropped_stx, mpxk_stats.dropped_stx_brute,
+			mpxk_stats.dropped_ldx, mpxk_stats.wrappers_added);
 }
 
 /**
@@ -158,8 +128,11 @@ void insert_mpxk_bound_load(gimple_stmt_iterator *gsi, tree pointer, tree bounds
 	gimple_call_set_lhs(load_call, tmp_ptr);
 
 	/* Set chkp instrumentation stuff */
-	gimple_call_set_with_bounds(load_call, true);
-	gimple_set_plf(load_call, GF_PLF_1, false);
+  	gimple_call_set_with_bounds(load_call, true);
+  	gimple_set_plf(load_call, GF_PLF_1, false);
+
+	/* Update load call statement */
+	update_stmt(load_call);
 
 	/* Some error checking */
 	gcc_assert((load_call->subcode & GF_CALL_INTERNAL) == 0);
@@ -169,8 +142,8 @@ void insert_mpxk_bound_load(gimple_stmt_iterator *gsi, tree pointer, tree bounds
 	chkp_insert_retbnd_call(bounds, tmp_ptr, gsi);
 
 	/* Are these needed since we work "beyond" chkp? */
-	/* chkp_set_bounds(pointer, bounds); */
-	/* gimple_call_with_bounds_p(load_call); */
+	chkp_set_bounds(pointer, bounds);
+	gimple_call_with_bounds_p(load_call);
 
 	update_stmt(load_call);
 }
@@ -197,9 +170,7 @@ static tree get_load_fndecl(void)
 	DECL_RESULT(fndecl) = build_decl(UNKNOWN_LOCATION, RESULT_DECL,
 			NULL_TREE, ptr_type_node);
 
-	/* DECL_ATTRIBUTES(fndecl) = tree_cons(get_identifier("chkp instrumented"), */
-	/* 		NULL, DECL_ATTRIBUTES(fndecl)); */
-	DECL_ATTRIBUTES(fndecl) = tree_cons(get_identifier("bnd_legacy"),
+	DECL_ATTRIBUTES(fndecl) = tree_cons(get_identifier("chkp instrumented"),
 			NULL, DECL_ATTRIBUTES(fndecl));
 
 	TREE_PUBLIC(DECL_RESULT(fndecl)) = 1;

@@ -21,11 +21,6 @@
  */
 #define d(...)
 
-#ifdef MPXK_DEBUG
-static const char *filename;
-static int lineno = 0;
-#endif /* MPXK_DEBUG */
-
 static unsigned int mpxk_bnd_store_execute(void);
 
 static void handle_ldx(gimple_stmt_iterator *gsi, gcall *call);
@@ -46,7 +41,6 @@ static struct register_pass_info pass_info_mpxk_bnd_store = {
 
 struct register_pass_info *get_mpxk_bnd_store_pass_info(void)
 {
-	(void) gcc_version;
 	return &pass_info_mpxk_bnd_store;
 }
 
@@ -58,8 +52,6 @@ static unsigned int mpxk_bnd_store_execute(void)
 	gcall *call;
 	tree fndecl;
 
-	if (skip_execute(BND_LEGACY)) return 0;
-
 	const char* name = DECL_NAME_POINTER(cfun->decl);
 
 	bb = ENTRY_BLOCK_PTR_FOR_FN (cfun)->next_bb;
@@ -67,13 +59,6 @@ static unsigned int mpxk_bnd_store_execute(void)
 		next = bb->next_bb;
 		for (iter = gsi_start_bb(bb); !gsi_end_p(iter); ) {
 			stmt = gsi_stmt(iter);
-#ifdef MPXK_DEBUG
-			/* Store the most recent available location */
-			if (gimple_lineno(stmt) != 0) {
-				filename = gimple_filename(stmt);
-				lineno = gimple_lineno(stmt);
-			}
-#endif /* MPXK_DEBUG */
 
 			switch (gimple_code(stmt)) {
 			case GIMPLE_CALL:
@@ -113,12 +98,6 @@ static unsigned int mpxk_bnd_store_execute(void)
  */
 static void handle_stx(gimple_stmt_iterator *gsi, gcall *call)
 {
-#ifdef MPXK_DEBUG
-	fprintf(stderr, "%s: removed bndstx call in %s at %s:%d\n",
-			__FILE__, DECL_NAME_POINTER(current_function_decl),
-			filename, lineno);
-#endif
-
 	gcc_assert(!strcmp(DECL_NAME_POINTER(gimple_call_fndecl(call)),
 				"__builtin_ia32_bndstx"));
 
@@ -143,12 +122,8 @@ static void handle_stx(gimple_stmt_iterator *gsi, gcall *call)
  */
 static void handle_ldx(gimple_stmt_iterator *gsi, gcall *bndldx_call)
 {
-#ifdef MPXK_DEBUG
-	fprintf(stderr, "%s: replaced bndldx call in %s at %s:%d\n",
-			__FILE__, DECL_NAME_POINTER(current_function_decl),
-			filename, lineno);
-#endif
-	tree orig_ptr, bounds;
+	tree orig_ptr, bounds, load_fndecl, tmp_ptr;
+	gcall *load_call, *bndret_call;
 
 	gcc_assert(!strcmp(DECL_NAME_POINTER(gimple_call_fndecl(bndldx_call)),
 				"__builtin_ia32_bndldx"));

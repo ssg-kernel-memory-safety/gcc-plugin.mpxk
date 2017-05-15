@@ -107,7 +107,6 @@ static bool mpxk_is_wrappable_chkp(const char *name)
 
 void mpxk_builitins_sanity_check(void)
 {
-	(void) gcc_version;
 	gcc_assert(strlen(CHKP_POSTFIX) == 5);
 
 	gcc_assert(0 == strcmp(MPXK_WRAPPER_PREFIX "kmalloc", mpxk_get_wrapper_name("kmalloc")));

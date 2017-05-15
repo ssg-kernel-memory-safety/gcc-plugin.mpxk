@@ -14,11 +14,14 @@
 #include "mpxk.h"
 #include <ipa-chkp.h>
 
-/* #define d(...) dsay(__VA_ARGS__) */
+/*
+ * #define d(...) dsay(__VA_ARGS__)
+ */
 #define d(...)
 
 static unsigned int mpxk_wrappers_execute(void);
 static void mpxk_wrappers_gimple_call(gimple_stmt_iterator *gsi);
+static void replace_gimple_call_static(gcall *call, const tree fndecl);
 
 #define PASS_NAME mpxk_wrappers
 #define NO_GATE
@@ -34,21 +37,24 @@ struct register_pass_info pass_info_mpxk_wrappers = {
 
 struct register_pass_info *get_mpxk_wrappers_pass_info(void)
 {
-	(void) gcc_version;
 	return &pass_info_mpxk_wrappers;
 }
 
 static unsigned int mpxk_wrappers_execute(void)
 {
-	tree fndecl;
 	basic_block bb, next;
-	gimple_stmt_iterator iter;
 	gimple stmt;
+	gimple_stmt_iterator iter;
 
-	if (skip_execute(BND_LEGACY)) return 0;
+	const tree fndecl = cfun->decl;
+	const char* name = DECL_NAME_POINTER(fndecl);
 
 	/* Do not modify wrapper functions */
-	if (mpxk_is_wrapper(DECL_NAME_POINTER(cfun->decl)))
+	if (mpxk_is_wrapper(name))
+		return 0;
+
+	/* Do not modify bnd_legacy functions */
+	if (lookup_attribute("bnd_legacy", DECL_ATTRIBUTES(fndecl)) != NULL)
 		return 0;
 
 	bb = ENTRY_BLOCK_PTR_FOR_FN (cfun)->next_bb;
@@ -57,10 +63,10 @@ static unsigned int mpxk_wrappers_execute(void)
 		for (iter = gsi_start_bb(bb); !gsi_end_p(iter); ) {
 			stmt = gsi_stmt(iter);
 
-			if (gimple_code(stmt) == GIMPLE_CALL) {
-				fndecl = gimple_call_fndecl(as_a <gcall *>(stmt));
-				if (fndecl && mpxk_is_wrappable(DECL_NAME_POINTER(fndecl)))
-					mpxk_wrappers_gimple_call(&iter);
+			switch (gimple_code(stmt)) {
+			case GIMPLE_CALL:
+				mpxk_wrappers_gimple_call(&iter);
+				break;
 			}
 
 			gsi_next(&iter);
@@ -80,24 +86,22 @@ static unsigned int mpxk_wrappers_execute(void)
  */
 static void mpxk_wrappers_gimple_call(gimple_stmt_iterator *gsi)
 {
+	gcc_assert(!mpxk_is_wrapper(DECL_NAME_POINTER(cfun->decl)));
+
 	tree arg, type, new_decl, fndecl;
-	const char *new_name, *name;
-	gcall *call;
-
-	/* Get the current data */
-	call = as_a <gcall *>(gsi_stmt (*gsi));
+	gcall *call = as_a <gcall *> (gsi_stmt (*gsi));
+	const char *new_name;
 	fndecl = gimple_call_fndecl(call);
-	name = DECL_NAME_POINTER(fndecl);
 
-	/* Create data for new call */
+	if (!fndecl || !mpxk_is_wrappable(DECL_NAME_POINTER(fndecl)))
+		return;
+
 	new_decl = copy_node(fndecl);
-	new_name = mpxk_get_wrapper_name(name);
+	new_name = mpxk_get_wrapper_name(DECL_NAME_POINTER(fndecl));
+
 	gcc_assert(new_name != NULL);
 
-	/* Set visibility. TODO: do we need this? */
 	DECL_VISIBILITY(new_decl) = VISIBILITY_DEFAULT;
-
-	/* Set wrapper name */
 	DECL_NAME(new_decl) = get_identifier(new_name);
 	SET_DECL_ASSEMBLER_NAME(new_decl, get_identifier(new_name));
 
@@ -107,6 +111,7 @@ static void mpxk_wrappers_gimple_call(gimple_stmt_iterator *gsi)
 		DECL_CONTEXT(arg) = new_decl;
 
 	/* Copy and modify function attributes */
+	/* TODO: Experiment with allowing inlined wrappers. */
 	DECL_ATTRIBUTES(new_decl) = remove_attribute("always_inline",
 			copy_list(DECL_ATTRIBUTES(fndecl)));
 
@@ -122,12 +127,11 @@ static void mpxk_wrappers_gimple_call(gimple_stmt_iterator *gsi)
 
 	update_stmt(call);
 
-	mpxk_stats.wrappers_added++;
+	d("swapped %s to %s in %s\n", __FILE__, __LINE__, __func__,
+			DECL_NAME_POINTER(fndecl), new_name,
+			DECL_NAME_POINTER(cfun->decl));
 
-#ifdef MPXK_DEBUG
-	fprintf(stderr, "inserted %s at %s:%d\n", new_name,
-			gimple_filename(call), gimple_lineno(call));
-#endif
+	mpxk_stats.wrappers_added++;
 }
 
 #undef d
