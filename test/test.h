@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+int test_va_arg(void);
+
 #define test __attribute__((noinline))
 #define test_legacy __attribute__((noinline)) __attribute__((bnd_legacy))
 

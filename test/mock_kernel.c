@@ -34,8 +34,16 @@ void *kmalloc(size_t size, gfp_t flags)
 __attribute__((bnd_legacy))
 void kfree(void *ptr)
 {
+	int i;
+	for (i = 0; i < CACHE_SIZE; i++) {
+		if (ptrs[i] == ptr) {
+			ptrs[i] = NULL;
+			ptr_sizes[i] = 0;
+			break;
+		}
+	}
+
 	free(ptr);
-	/* TODO: Maybe remove from ptr_size cache too? */
 }
 
 
@@ -61,8 +69,9 @@ size_t ksize(void *ptr)
 			break;
 	}
 
-	if (i != CACHE_SIZE)
+	if (i != CACHE_SIZE) {
 		return ptr_sizes[i];
+	}
 
 	assert(!"Plan on never getting here for these tests!");
 }

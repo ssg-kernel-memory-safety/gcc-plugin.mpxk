@@ -2,6 +2,7 @@
 #include "assert_tests.h"
 #include "test_dump.h"
 
+
 int main(int argc, char **argv)
 {
 	/* Make sure our tests, mocks, etc are correct */
@@ -10,5 +11,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	return (! run_test_dumps());
+	return (! (run_test_dumps()
+			&& test_va_arg()
+		  ));
 }
