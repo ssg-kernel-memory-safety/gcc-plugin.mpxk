@@ -3,7 +3,10 @@
 
 #include <stdio.h>
 
-int test_va_arg(void);
+int test_dumps(void);
+int test_va_args(void);
+int test_func_args(void);
+int test_complex_func(void);
 
 #define test __attribute__((noinline))
 #define test_legacy __attribute__((noinline)) __attribute__((bnd_legacy))

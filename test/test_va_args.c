@@ -62,12 +62,14 @@ static int basic_va_case(int count, ...)
 	return (check_count == count);
 }
 
-	test
-int test_va_arg(void)
+test
+int test_va_args(void)
 {
 	int fails = 0;
 	void *dev;
 	void *p1, *p2, *p3, *p4, *p5;
+
+	printf("%s", __func__);
 
 	/* Test the case from net/core/dev.c */
 	dev = kmalloc(DEVICE_SIZE, GFP_KERNEL);
@@ -83,5 +85,6 @@ int test_va_arg(void)
 
 	fails += !basic_va_case(5, p1, p2, p3, p4, p5);
 
+	printf(" %s\n", (fails ? "FAILED" : "ok"));
 	return !fails;
 }

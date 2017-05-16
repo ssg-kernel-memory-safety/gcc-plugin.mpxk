@@ -3,7 +3,6 @@
  * runtime testing. Allows running the same tests in a stand-alone fashion outside the kernel.
  */
 
-#include "test_dump.h"
 #include "test.h"
 #include "mock_kernel.h"
 
@@ -301,8 +300,10 @@ void lkdtm_MPXK_BND_FUNC10(void) { do_the_test(BND_FUNC10);}
  * end of dump....
  ****************************************************************/
 
-int run_test_dumps(void)
+int test_dumps(void)
 {
+	printf("%s", __func__);
+
 	lkdtm_MPX_BOUNDS_LOAD();
 	lkdtm_MPX_BOUNDS_FUNC_EXTERN();
 	lkdtm_MPX_BOUNDS_FUNC_INLINE();
@@ -312,6 +313,8 @@ int run_test_dumps(void)
 	/* lkdtm_MPXK_BND_BASIC(); */
 	/* lkdtm_MPXK_BND_ARRAY(); */
 	/* lkdtm_MPXK_BND_FUNC10(); */
+
+	printf(" %s\n", (failed ? "FAILED" : "ok"));
 	return !failed;
 }
 

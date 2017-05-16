@@ -76,6 +76,7 @@ static unsigned int mpxk_cfun_args_execute(void)
 				insert_mpxk_bound_load(&iter, prev, l);
 
 			} else if (arg_count > 6) {
+				/* FIXME: Might have been a side-effect of something else? */
 				/* This seems to be a bug/feature. If a poinrter is becyond
 				 * the sixth (non-bound) argument, then we're using bndstx
 				 * bndldx whether or not registers would be available. */
