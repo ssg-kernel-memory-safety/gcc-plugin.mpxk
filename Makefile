@@ -3,7 +3,7 @@ CXX := g++
 RM := rm
 
 GCCPLUGINS_DIR := $(shell $(CC) -print-file-name=plugin)
-PLUGIN_FLAGS := -I$(GCCPLUGINS_DIR)/include -I$(GCCPLUGINS_DIR)/include/c-family #-Wno-unused-parameter -Wno-unused-variable #-fdump-passes
+PLUGIN_FLAGS := -I$(GCCPLUGINS_DIR)/include -I$(GCCPLUGINS_DIR)/include/c-family
 DESTDIR :=
 LDFLAGS :=
 
@@ -25,7 +25,6 @@ TEST_OBJ := $(TEST_SRC:.c=.o)
 
 TEST_DUMPS := $(TEST_OBJ:.o=.c.*);
 
-
 CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 		else if [ -x /bin/bash ]; then echo /bin/bash; \
 			else echo sh; fi ; fi)
@@ -40,13 +39,18 @@ endif
 
 PLUGIN_FLAGS += -fPIC -shared -ggdb -Wall -W -fvisibility=hidden
 
-DUMP_FLAGS := -fdump-rtl-all -fdump-tree-all -fdump-ipa-all
+# Flags used for "normal" in-kernel MPX compile
+MPXK_CFLAGS := -fplugin=./$(PLUGIN) -mmpx -fcheck-pointer-bounds \
+	-fno-chkp-store-bounds -fno-chkp-narrow-bounds -fno-chkp-check-read -fno-chkp-use-wrappers
 
-MPXK_CFLAGS := -fplugin=./$(PLUGIN) -mmpx -fcheck-pointer-bounds
-MPXK_CFLAGS += -fno-chkp-store-bounds -fno-chkp-narrow-bounds -fno-chkp-check-read -fno-chkp-use-wrappers
+# Flags used to compile support functions for mpxk (e.g. wrappers and load functions).
 MPXK_LIB_CFLAGS := $(MPXK_CFLAGS) -fno-chkp-check-write
 
+# Flags needed to "simulate" the Linux kernel KBuild setup (assumed by the mpxk plugin)
 KERNEL_FLAGS := -O2 -std=gnu89
+
+# Flags for producing dumps (used to debug tests)
+DUMP_FLAGS := -fdump-rtl-all -fdump-tree-all -fdump-ipa-all
 
 all: $(PLUGIN)
 
