@@ -7,7 +7,9 @@ PLUGIN_FLAGS := -I$(GCCPLUGINS_DIR)/include -I$(GCCPLUGINS_DIR)/include/c-family
 DESTDIR :=
 LDFLAGS :=
 
-BIN := mpxk.so
+PLUGIN := mpxk.so
+TEST_BIN := run_test
+TEST_DIR := test
 
 OBJ := mpxk.o mpxk_builtins.o
 OBJ += mpxk_pass_wrappers.o
@@ -17,6 +19,12 @@ OBJ += mpxk_pass_cfun_args.o
 OBJ += mpxk_pass_sweeper.o
 
 SRC := $(OBJ:.o=.c)
+
+TEST_SRC := $(wildcard $(TEST_DIR)/*.c)
+TEST_OBJ := $(TEST_SRC:.c=.o)
+
+TEST_DUMPS := $(TEST_OBJ:.o=.c.*);
+
 
 CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 		else if [ -x /bin/bash ]; then echo /bin/bash; \
@@ -32,16 +40,36 @@ endif
 
 PLUGIN_FLAGS += -fPIC -shared -ggdb -Wall -W -fvisibility=hidden
 
-all: $(BIN)
+DUMP_FLAGS := -fdump-rtl-all -fdump-tree-all -fdump-ipa-all
 
-$(BIN): $(OBJ)
+MPXK_CFLAGS := -fplugin=./$(PLUGIN) -mmpx -fcheck-pointer-bounds
+MPXK_CFLAGS += -fno-chkp-store-bounds -fno-chkp-narrow-bounds -fno-chkp-check-read -fno-chkp-use-wrappers
+MPXK_LIB_CFLAGS := $(MPXK_CFLAGS) -fno-chkp-check-write
+
+# FIXME: This doesn't properly replicate KBuild, I think.
+KERNEL_FLAGS := -O2
+
+all: $(PLUGIN)
+
+$(PLUGIN): $(OBJ)
 	$(PLUGINCC) $(PLUGIN_FLAGS) -o $@ $^
 
-%.o : %.c
+%.o: %.c
 	$(PLUGINCC) $(PLUGIN_FLAGS) -o $@ -c $<
 
-run test: $(BIN)
-	$(CC) -fplugin=$(CURDIR)/$(BIN) test.c -o test -O2 -fdump-tree-all -fdump-ipa-all -fno-inline
+test: $(PLUGIN) $(TEST_BIN)
+	./$(TEST_BIN)
+
+$(TEST_BIN): $(PLUGIN) $(TEST_OBJ)
+	$(CC) $(KERNEL_FLAGS) $(MPXK_CFLAGS) -o $(TEST_BIN) $(TEST_OBJ)
+
+test/%.o: $(PLUGIN) test/%.c
+	$(CC) $(KERNEL_FLAGS) $(MPXK_CFLAGS) $(DUMP_FLAGS) -o $@ -c $(@:.o=.c)
+
+test/mpxk_functions.o: $(PLUGIN) test/mpxk_functions.c
+	$(CC) $(KERNEL_FLAGS) $(MPXK_LIB_CFLAGS) -o $@ -c $(@:.o=.c)
 
 clean:
-	$(RM) -f $(BIN) test test.c.* test.ltrans0.* test.wpa.* test_*.c.* test_* *.o
+	$(RM) -f $(PLUGIN) $(TEST_BIN) $(PLUGIN) $(OBJ) $(TEST_OBJ) $(TEST_DUMPS)
+
+print-%: ; @echo $* = $($*)
