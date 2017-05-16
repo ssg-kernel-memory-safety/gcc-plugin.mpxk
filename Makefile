@@ -8,7 +8,7 @@ DESTDIR :=
 LDFLAGS :=
 
 PLUGIN := mpxk.so
-TEST_BIN := run_test
+TEST_BIN := test/test
 TEST_DIR := test
 
 OBJ := mpxk.o mpxk_builtins.o
@@ -56,7 +56,10 @@ $(PLUGIN): $(OBJ)
 %.o: %.c
 	$(PLUGINCC) $(PLUGIN_FLAGS) -o $@ -c $<
 
-test: $(PLUGIN) $(TEST_BIN)
+test: run_test
+	echo "if objdump -d $(TEST_BIN) | grep -E 'bndstx|bndldx'; then false; else echo 'all OK!'; fi" | bash
+
+run_test: $(TEST_BIN)
 	./$(TEST_BIN)
 
 $(TEST_BIN): $(PLUGIN) $(TEST_OBJ)
