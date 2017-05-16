@@ -46,8 +46,7 @@ MPXK_CFLAGS := -fplugin=./$(PLUGIN) -mmpx -fcheck-pointer-bounds
 MPXK_CFLAGS += -fno-chkp-store-bounds -fno-chkp-narrow-bounds -fno-chkp-check-read -fno-chkp-use-wrappers
 MPXK_LIB_CFLAGS := $(MPXK_CFLAGS) -fno-chkp-check-write
 
-# FIXME: This doesn't properly replicate KBuild, I think.
-KERNEL_FLAGS := -O2
+KERNEL_FLAGS := -O2 -std=gnu89
 
 all: $(PLUGIN)
 
@@ -61,7 +60,7 @@ test: $(PLUGIN) $(TEST_BIN)
 	./$(TEST_BIN)
 
 $(TEST_BIN): $(PLUGIN) $(TEST_OBJ)
-	$(CC) $(KERNEL_FLAGS) $(MPXK_CFLAGS) -o $(TEST_BIN) $(TEST_OBJ)
+	$(CC) -mmpx -fcheck-pointer-bounds -o $(TEST_BIN) $(TEST_OBJ)
 
 test/%.o: $(PLUGIN) test/%.c
 	$(CC) $(KERNEL_FLAGS) $(MPXK_CFLAGS) $(DUMP_FLAGS) -o $@ -c $(@:.o=.c)

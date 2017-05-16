@@ -7,7 +7,7 @@
 #define test_legacy __attribute__((noinline)) __attribute__((bnd_legacy))
 
 __attribute__((always_inline)) __attribute__((bnd_legacy))
-inline int __assert_bnds(unsigned long e, unsigned long w)
+inline static int __assert_bnds(unsigned long e, unsigned long w)
 {
 	if (e == w)
 		return 1;
