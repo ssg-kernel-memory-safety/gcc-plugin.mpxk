@@ -16,9 +16,7 @@
 #include <ipa-chkp.h>
 #include <tree-chkp.h>
 
-/*
- * #define d(...) dsay(__VA_ARGS__)
- */
+/* #define d(...) dsay(__VA_ARGS__) */
 #define d(...)
 
 #ifdef MPXK_DEBUG
@@ -83,10 +81,8 @@ static unsigned int mpxk_bnd_store_execute(void)
 				/* Make sure the wrappers don't need this! */
 				gcc_assert(!mpxk_is_wrap_any(name));
 
-				if (!fndecl) {
-					d("Skipping GIMPLE_CALL without fndecl\n", __FILE__, __LINE__, __func__);
+				if (!fndecl)
 					break;
-				}
 
 				if (!strcmp(DECL_NAME_POINTER(fndecl), "__builtin_ia32_bndstx"))
 					handle_stx(&iter, call);
@@ -113,11 +109,6 @@ static unsigned int mpxk_bnd_store_execute(void)
  */
 static void handle_stx(gimple_stmt_iterator *gsi, gcall *call)
 {
-#ifdef MPXK_DEBUG
-	fprintf(stderr, "%s: removed bndstx call in %s at %s:%d\n",
-			__FILE__, DECL_NAME_POINTER(current_function_decl),
-			filename, lineno);
-#endif
 
 	gcc_assert(!strcmp(DECL_NAME_POINTER(gimple_call_fndecl(call)),
 				"__builtin_ia32_bndstx"));
@@ -127,6 +118,8 @@ static void handle_stx(gimple_stmt_iterator *gsi, gcall *call)
 	gsi_prev(gsi);
 
 	unlink_stmt_vdef(call);
+
+	d("removed bndstx call in at %s:%d\n", filename, lineno);
 	mpxk_stats.dropped_stx++;
 }
 
@@ -143,11 +136,6 @@ static void handle_stx(gimple_stmt_iterator *gsi, gcall *call)
  */
 static void handle_ldx(gimple_stmt_iterator *gsi, gcall *bndldx_call)
 {
-#ifdef MPXK_DEBUG
-	fprintf(stderr, "%s: replaced bndldx call in %s at %s:%d\n",
-			__FILE__, DECL_NAME_POINTER(current_function_decl),
-			filename, lineno);
-#endif
 	tree orig_ptr, bounds;
 
 	gcc_assert(!strcmp(DECL_NAME_POINTER(gimple_call_fndecl(bndldx_call)),
@@ -167,6 +155,7 @@ static void handle_ldx(gimple_stmt_iterator *gsi, gcall *bndldx_call)
 	/* Make sure iterator points to last statement we worked on */
 	gsi_prev(gsi);
 
+	d("replaced bndldx call in at %s:%d", filename, lineno);
 	mpxk_stats.dropped_ldx++;
 }
 

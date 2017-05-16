@@ -9,7 +9,8 @@
 #include <rtl.h>
 #include <print-rtl.h>
 
-#define d(...) dsay(__VA_ARGS__)
+/* #define d(...) dsay(__VA_ARGS__) */
+#define d(...)
 
 static unsigned int mpxk_sweeper_execute(void);
 static bool contains_unspec(rtx pattern, const int code);
@@ -23,7 +24,7 @@ static struct register_pass_info pass_info_mpxk_sweeper = {
 	.pass				= make_mpxk_sweeper_pass(),
 	.reference_pass_name		= "final",
 	.ref_pass_instance_number	= 1,
-	.pos_op				= PASS_POS_INSERT_AFTER
+	.pos_op				= PASS_POS_INSERT_BEFORE
 };
 
 struct register_pass_info *get_mpxk_sweeper_pass_info(void)
@@ -43,7 +44,6 @@ static unsigned int mpxk_sweeper_execute(void)
 	if (skip_execute(NULL)) return 0;
 
 	loc = expand_location(DECL_SOURCE_LOCATION(current_function_decl));
-	d("starting final sweep\n", __FILE__, __LINE__, __func__);
 
 	bb = ENTRY_BLOCK_PTR_FOR_FN (cfun)->next_bb;
 	do {
@@ -56,14 +56,13 @@ static unsigned int mpxk_sweeper_execute(void)
 			if (r != NULL) {
 				if (contains_unspec(r, UNSPEC_BNDSTX)) {
 #ifndef MPXK_SWEEPER_DO_REMOVE
-					fprintf(stderr, "SWEEPER_ERROR: found bndstx in %s at %s:%d:%s\n",
-							DECL_NAME_POINTER(current_function_decl),
-							loc.file, loc.line, DECL_NAME_POINTER(current_function_decl));
+					print("SWEEPER_ERROR => found bndstx at %s:%ds",
+							loc.file, loc.line);
 #else /* MPXK_SWEEPER_DO_REMOVE */
-					fprintf(stderr, "SWEEPER_WARNING: found bndstx in %s at %s:%d:%s\n",
-							DECL_NAME_POINTER(current_function_decl),
-							loc.file, loc.line, DECL_NAME_POINTER(current_function_decl));
-					remove_insn(insn);
+					print("SWEEPER_WARNING => removed bndstx at %s:%d",
+							loc.file, loc.line);
+					/* These aren't sticking ? */
+					delete_insn(insn);
 #endif /* MPXK_SWEEPER_DO_REMOVE */
 					mpxk_stats.sweep_stx++;
 					found++;
@@ -71,14 +70,13 @@ static unsigned int mpxk_sweeper_execute(void)
 				if (contains_unspec(r, UNSPEC_BNDLDX) ||
 						contains_unspec(r, UNSPEC_BNDLDX_ADDR)) {
 #ifndef MPXK_SWEEPER_DO_REMOVE
-					fprintf(stderr, "SWEEPER_ERROR: found bndldx in %s at %s:%d:%s\n",
-							DECL_NAME_POINTER(current_function_decl),
-							loc.file, loc.line, DECL_NAME_POINTER(current_function_decl));
+					print("SWEEPER_ERROR => found bndldx at %s:%d",
+							loc.file, loc.line);
 #else /* MPXK_SWEEPER_DO_REMOVE */
-					fprintf(stderr, "SWEEPER_WARNING: found bndldx in %s at %s:%d:%s\n",
-							DECL_NAME_POINTER(current_function_decl),
-							loc.file, loc.line, DECL_NAME_POINTER(current_function_decl));
-					remove_insn(insn);
+					print("SWEEPER_WARNING => removed bndldx at %s:%d",
+							loc.file, loc.line);
+					/* These aren't sticking ? */
+					delete_insn(insn);
 #endif /* MPXK_SWEEPER_DO_REMOVE */
 					mpxk_stats.sweep_ldx++;
 					found++;
@@ -89,7 +87,7 @@ static unsigned int mpxk_sweeper_execute(void)
 	} while (bb);
 
 	loc = expand_location(DECL_SOURCE_LOCATION(current_function_decl));
-	d("sweep %d problems in %s\n", __FILE__, __LINE__, __func__, found, loc.file);
+	d("found %d problems", found);
 
 #ifdef MPXK_CRASH_ON_SWEEP
 	if (found)

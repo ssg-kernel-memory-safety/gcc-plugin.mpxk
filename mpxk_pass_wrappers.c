@@ -59,8 +59,10 @@ static unsigned int mpxk_wrappers_execute(void)
 
 			if (gimple_code(stmt) == GIMPLE_CALL) {
 				fndecl = gimple_call_fndecl(as_a <gcall *>(stmt));
-				if (fndecl && mpxk_is_wrappable(DECL_NAME_POINTER(fndecl)))
+				if (fndecl && mpxk_is_wrappable(DECL_NAME_POINTER(fndecl))) {
+					d("inserting wrapper for %s", DECL_NAME_POINTER(fndecl));
 					mpxk_wrappers_gimple_call(&iter);
+				}
 			}
 
 			gsi_next(&iter);
@@ -124,10 +126,7 @@ static void mpxk_wrappers_gimple_call(gimple_stmt_iterator *gsi)
 
 	mpxk_stats.wrappers_added++;
 
-#ifdef MPXK_DEBUG
-	fprintf(stderr, "inserted %s at %s:%d\n", new_name,
-			gimple_filename(call), gimple_lineno(call));
-#endif
+	d("inserted %s at %s:%d\n", new_name, gimple_filename(call), gimple_lineno(call));
 }
 
 #undef d
