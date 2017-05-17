@@ -19,11 +19,6 @@
 /* #define d(...) dsay(__VA_ARGS__) */
 #define d(...)
 
-#ifdef MPXK_DEBUG
-static const char *filename;
-static int lineno = 0;
-#endif /* MPXK_DEBUG */
-
 static unsigned int mpxk_bnd_store_execute(void);
 
 static void handle_ldx(gimple_stmt_iterator *gsi, gcall *call);
@@ -65,13 +60,6 @@ static unsigned int mpxk_bnd_store_execute(void)
 		next = bb->next_bb;
 		for (iter = gsi_start_bb(bb); !gsi_end_p(iter); ) {
 			stmt = gsi_stmt(iter);
-#ifdef MPXK_DEBUG
-			/* Store the most recent available location */
-			if (gimple_lineno(stmt) != 0) {
-				filename = gimple_filename(stmt);
-				lineno = gimple_lineno(stmt);
-			}
-#endif /* MPXK_DEBUG */
 
 			switch (gimple_code(stmt)) {
 			case GIMPLE_CALL:
@@ -109,7 +97,7 @@ static unsigned int mpxk_bnd_store_execute(void)
  */
 static void handle_stx(gimple_stmt_iterator *gsi, gcall *call)
 {
-
+	d("removed bndstx call in at %s:%d\n", gimple_filename(call), gimple_lineno(call));
 	gcc_assert(!strcmp(DECL_NAME_POINTER(gimple_call_fndecl(call)),
 				"__builtin_ia32_bndstx"));
 
@@ -119,7 +107,6 @@ static void handle_stx(gimple_stmt_iterator *gsi, gcall *call)
 
 	unlink_stmt_vdef(call);
 
-	d("removed bndstx call in at %s:%d\n", filename, lineno);
 	mpxk_stats.dropped_stx++;
 }
 
@@ -134,20 +121,21 @@ static void handle_stx(gimple_stmt_iterator *gsi, gcall *call)
  * 	tmp_ptr = load_bounds(orig_ptr)
  * 	bounds = bndret(tmp_ptr)
  */
-static void handle_ldx(gimple_stmt_iterator *gsi, gcall *bndldx_call)
+static void handle_ldx(gimple_stmt_iterator *gsi, gcall *call)
 {
 	tree orig_ptr, bounds;
 
-	gcc_assert(!strcmp(DECL_NAME_POINTER(gimple_call_fndecl(bndldx_call)),
+	d("replaced bndldx call in at %s:%d", gimple_filename(call), gimple_lineno(call));
+	gcc_assert(!strcmp(DECL_NAME_POINTER(gimple_call_fndecl(call)),
 				"__builtin_ia32_bndldx"));
 
 	/* Store what we need from the bndldx_call */
-	orig_ptr = gimple_call_arg(bndldx_call, 1);
-	bounds = gimple_call_lhs(bndldx_call);
+	orig_ptr = gimple_call_arg(call, 1);
+	bounds = gimple_call_lhs(call);
 
 	/* Remove the bndldx call, which moves iterator to next stmt. */
 	gsi_remove(gsi, true);
-	unlink_stmt_vdef(bndldx_call);
+	unlink_stmt_vdef(call);
 
 	/* Now insert our own load bounds function */
 	insert_mpxk_bound_load(gsi, orig_ptr, bounds);
@@ -155,7 +143,6 @@ static void handle_ldx(gimple_stmt_iterator *gsi, gcall *bndldx_call)
 	/* Make sure iterator points to last statement we worked on */
 	gsi_prev(gsi);
 
-	d("replaced bndldx call in at %s:%d", filename, lineno);
 	mpxk_stats.dropped_ldx++;
 }
 

@@ -84,13 +84,11 @@ static void mpxk_plugin_finish(void *gcc_data, void *user_data)
 			mpxk_stats.wrappers_added, loc.file);
 #endif
 
-	if (mpxk_stats.sweep_ldx || mpxk_stats.sweep_stx) {
 #ifdef MPXK_CRASH_ON_SWEEP
+	if (mpxk_stats.sweep_ldx || mpxk_stats.sweep_stx) {
 		internal_error("Unhandled bndstx/bndldx instructions in %s\n", loc.file);
-#else
-		dsay("Unhandled bndstx/bndldx instructions in %s\n", loc.file);
-#endif /* MPXK_CRASH_ON_SWEEP */
 	}
+#endif /* MPXK_CRASH_ON_SWEEP */
 }
 
 bool skip_execute(const char *attr) {
