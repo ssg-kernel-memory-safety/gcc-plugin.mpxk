@@ -8,22 +8,23 @@ DESTDIR :=
 LDFLAGS :=
 
 PLUGIN := mpxk.so
-TEST_BIN := test/test
-TEST_DIR := test
-
 OBJ := mpxk.o mpxk_builtins.o
 OBJ += mpxk_pass_wrappers.o
 OBJ += mpxk_pass_bnd_store.o
 OBJ += mpxk_pass_rm_bndstx.o
 OBJ += mpxk_pass_cfun_args.o
 OBJ += mpxk_pass_sweeper.o
-
 SRC := $(OBJ:.o=.c)
 
-TEST_SRC := $(wildcard $(TEST_DIR)/*.c)
-TEST_OBJ := $(TEST_SRC:.c=.o)
+TEST_BIN := test/test_mpxk
+MPX_TEST_BIN := test/test_mpx
+TEST_DIR := test
 
-TEST_DUMPS := $(TEST_OBJ:.o=.c.*);
+TEST_SRC := $(wildcard $(TEST_DIR)/test*.c)
+TEST_OBJ := $(TEST_SRC:.c=.mpxk.o) test/mpxk_functions.o test/mock_kernel.o
+MPX_TEST_OBJ := $(TEST_SRC:.c=.mpx.o) test/mpx_mock_kernel.o
+
+TEST_DUMPS := $(TEST_OBJ:.mpxk.o=.c.*);
 
 CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 		else if [ -x /bin/bash ]; then echo /bin/bash; \
@@ -39,9 +40,12 @@ endif
 
 PLUGIN_FLAGS += -fPIC -shared -ggdb -Wall -W -fvisibility=hidden
 
-# Flags used for "normal" in-kernel MPX compile
-MPXK_CFLAGS := -fplugin=./$(PLUGIN) -mmpx -fcheck-pointer-bounds \
-	-fno-chkp-store-bounds -fno-chkp-narrow-bounds -fno-chkp-check-read -fno-chkp-use-wrappers
+
+# Basic MPX configuration flags
+MPX_CFLAGS := -mmpx -fcheck-pointer-bounds -fno-chkp-narrow-bounds -fno-chkp-check-read
+
+# Flags using the MPXK plugin
+MPXK_CFLAGS := -fplugin=./$(PLUGIN) $(MPX_CFLAGS) -fno-chkp-store-bounds -fno-chkp-use-wrappers
 
 # Flags used to compile support functions for mpxk (e.g. wrappers and load functions).
 MPXK_LIB_CFLAGS := $(MPXK_CFLAGS) -fno-chkp-check-write
@@ -57,25 +61,44 @@ all: $(PLUGIN)
 $(PLUGIN): $(OBJ)
 	$(PLUGINCC) $(PLUGIN_FLAGS) -o $@ $^
 
-%.o: %.c
+%.o: %.c mpxk.h
 	$(PLUGINCC) $(PLUGIN_FLAGS) -o $@ -c $<
 
-test: run_test
+test: test_mpx test_mpxk
 	echo "if objdump -d $(TEST_BIN) | grep -E 'bndstx|bndldx'; then false; else echo 'all OK!'; fi" | bash
 
-run_test: $(TEST_BIN)
+test_mpxk: $(TEST_BIN)
 	./$(TEST_BIN)
+
+test_mpx: $(MPX_TEST_BIN)
+	./$(MPX_TEST_BIN)
 
 $(TEST_BIN): $(PLUGIN) $(TEST_OBJ)
 	$(CC) -mmpx -fcheck-pointer-bounds -o $(TEST_BIN) $(TEST_OBJ)
 
-test/%.o: $(PLUGIN) test/%.c
-	$(CC) $(KERNEL_FLAGS) $(MPXK_CFLAGS) $(DUMP_FLAGS) -o $@ -c $(@:.o=.c)
+$(MPX_TEST_BIN): $(MPX_TEST_OBJ)
+	$(CC) -mmpx -fcheck-pointer-bounds -o $(MPX_TEST_BIN) $(MPX_TEST_OBJ)
 
+# Need to compile MPX / MPX objects separately...
+test/%.mpxk.o: $(PLUGIN) test/%.c
+	$(CC) $(KERNEL_FLAGS) $(MPXK_CFLAGS) $(DUMP_FLAGS) -o $@ -c $(@:.mpxk.o=.c)
+
+test/%.mpx.o: $(PLUGIN) test/%.c
+	$(CC) $(KERNEL_FLAGS) $(MPX_CFLAGS) -o $@ -c $(@:.mpx.o=.c)
+
+# Only MPXK uses the mpxk_functions!
 test/mpxk_functions.o: $(PLUGIN) test/mpxk_functions.c
 	$(CC) $(KERNEL_FLAGS) $(MPXK_LIB_CFLAGS) -o $@ -c $(@:.o=.c)
 
+# Kernel mockup for mpxk tests compiled without MPX/MPXK
+test/mock_kernel.o: $(PLUGIN) test/mock_kernel.c
+	$(CC) $(KERNEL_FLAGS) -o $@ -c $(@:.o=.c)
+
+# Need to compile mockup kernel for mpx with mpx to wrap the mock impl.
+test/mpx_mock_kernel.o: $(PLUGIN) test/mock_kernel.c
+	$(CC) $(KERNEL_FLAGS) $(MPX_CFLAGS) -o $@ -c test/mock_kernel.c
+
 clean:
-	$(RM) -f $(PLUGIN) $(TEST_BIN) $(PLUGIN) $(OBJ) $(TEST_OBJ) $(TEST_DUMPS)
+	$(RM) -f $(PLUGIN) $(TEST_BIN) $(PLUGIN) $(OBJ) $(TEST_OBJ) $(MPX_TEST_OBJ) $(MPX_TEST_BIN) $(TEST_DUMPS)
 
 print-%: ; @echo $* = $($*)

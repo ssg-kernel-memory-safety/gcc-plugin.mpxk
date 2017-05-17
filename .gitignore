@@ -1,4 +1,5 @@
 *.o
 mpxk.so
 test/*.c.*
-test/test
+test/test_mpx
+test/test_mpxk

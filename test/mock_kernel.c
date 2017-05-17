@@ -7,7 +7,6 @@
 static void *ptrs[CACHE_SIZE] = { NULL };
 static size_t ptr_sizes[CACHE_SIZE];
 
-__attribute__((bnd_legacy))
 static void save_bounds(void *ptr, size_t size)
 {
 	int i;
@@ -22,7 +21,6 @@ static void save_bounds(void *ptr, size_t size)
 }
 
 
-__attribute__((bnd_legacy))
 void *kmalloc(size_t size, gfp_t flags)
 {
 	(void) flags;
@@ -31,7 +29,6 @@ void *kmalloc(size_t size, gfp_t flags)
 	return ptr;
 }
 
-__attribute__((bnd_legacy))
 void kfree(void *ptr)
 {
 	int i;
@@ -48,7 +45,6 @@ void kfree(void *ptr)
 
 
 /* Horrible stand-in for PageSlab(virt_to_page(ptr)) */
-__attribute__((bnd_legacy))
 int PageSlab_virt_to_page(void *ptr)
 {
 
@@ -60,7 +56,6 @@ int PageSlab_virt_to_page(void *ptr)
 	return 0;
 }
 
-__attribute__((bnd_legacy))
 size_t ksize(void *ptr)
 {
 	int i;

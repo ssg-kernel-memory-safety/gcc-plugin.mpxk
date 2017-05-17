@@ -1,9 +1,7 @@
-#include "assert_tests.h"
 #include "mock_kernel.h"
 #include "test.h"
-#include "assert.h"
 
-test_legacy
+static test_legacy
 int test_kmalloc_kszie()
 {
 	void *ptr = kmalloc(40, GFP_KERNEL);
@@ -16,7 +14,8 @@ int test_kmalloc_kszie()
 	return 1;
 }
 
-test int assert_test_stuff_okay(void)
+test
+int test_the_tests(void)
 {
 	return test_kmalloc_kszie();
 }

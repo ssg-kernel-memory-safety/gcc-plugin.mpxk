@@ -56,10 +56,10 @@ static unsigned int mpxk_sweeper_execute(void)
 			if (r != NULL) {
 				if (contains_unspec(r, UNSPEC_BNDSTX)) {
 #ifndef MPXK_SWEEPER_DO_REMOVE
-					print("SWEEPER_ERROR => found bndstx at %s:%ds",
+					dsay("SWEEPER_ERROR => found bndstx at %s:%ds",
 							loc.file, loc.line);
 #else /* MPXK_SWEEPER_DO_REMOVE */
-					print("SWEEPER_WARNING => removed bndstx at %s:%d",
+					dsay("SWEEPER_WARNING => removed bndstx at %s:%d",
 							loc.file, loc.line);
 					/* These aren't sticking ? */
 					delete_insn(insn);
@@ -70,10 +70,10 @@ static unsigned int mpxk_sweeper_execute(void)
 				if (contains_unspec(r, UNSPEC_BNDLDX) ||
 						contains_unspec(r, UNSPEC_BNDLDX_ADDR)) {
 #ifndef MPXK_SWEEPER_DO_REMOVE
-					print("SWEEPER_ERROR => found bndldx at %s:%d",
+					dsay("SWEEPER_ERROR => found bndldx at %s:%d",
 							loc.file, loc.line);
 #else /* MPXK_SWEEPER_DO_REMOVE */
-					print("SWEEPER_WARNING => removed bndldx at %s:%d",
+					dsay("SWEEPER_WARNING => removed bndldx at %s:%d",
 							loc.file, loc.line);
 					/* These aren't sticking ? */
 					delete_insn(insn);

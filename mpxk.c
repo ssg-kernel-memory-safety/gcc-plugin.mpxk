@@ -88,7 +88,7 @@ static void mpxk_plugin_finish(void *gcc_data, void *user_data)
 #ifdef MPXK_CRASH_ON_SWEEP
 		internal_error("Unhandled bndstx/bndldx instructions in %s\n", loc.file);
 #else
-		fprintf(stderr, "Unhandled bndstx/bndldx instructions in %s\n", loc.file);
+		dsay("Unhandled bndstx/bndldx instructions in %s\n", loc.file);
 #endif /* MPXK_CRASH_ON_SWEEP */
 	}
 }

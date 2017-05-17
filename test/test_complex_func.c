@@ -31,6 +31,7 @@ static struct tcp_sock *tcp_sk(struct sock *sk) {
 	tcp_sk_retval.undo_marker++;
 	tcp_sk_retval.undo_retrans++;
 	tcp_sk_retval.snd_una++;
+	fails += !assert_bnds(sk, sizeof(struct sock));
 	return &tcp_sk_retval;
 }
 
@@ -50,6 +51,7 @@ static void tcp_rack_advance(struct tcp_sock *tp,
 		void *xmit_time, int sacked)
 {
 	fails += !assert_bnds(xmit_time, XMIT_TIME_BOUNDS);
+	fails += !assert_bnds(tp, sizeof(struct tcp_sock));
 }
 
 /* from net/ipv4/tcp_input.c */
