@@ -18,7 +18,7 @@ inline static int __assert_bnds(unsigned long e, unsigned long w,
 {
 	if (e == w)
 		return 1;
-	printf("%s:%d:%s: bounds assertion failed, expected %lu, was %lu\n",
+	fprintf(stderr, "%s:%d:%s: bounds assertion failed, expected %lu, was %lu\n",
 			file, linenr, func, e, w);
 	return 0;
 }

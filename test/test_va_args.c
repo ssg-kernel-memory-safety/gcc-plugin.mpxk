@@ -45,19 +45,25 @@ static int netdev_emerg(const void *dev, const char *fmt, ...)
 test
 static int basic_va_case(int count, ...)
 {
-	int i, check_count = 0;
+	int i, s = 0, check_count = 0;
 	va_list vl;
 	void *ptr;
 
 	va_start(vl, count);
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < count; i++) {
 		ptr = va_arg(vl, void *) ;
-		assert_bnds(ptr, (DEVICE_SIZE * (i+1)));
+		assert_bnds(ptr, (DEVICE_SIZE * (s+1)));
 		check_count++;
+		s++;
+		s = s%10;
 	}
 
 	va_end(vl);
+
+	if (check_count != count)
+		fprintf(stderr, "%s: Expected %d checks, but only %d executed\n",
+				__func__, count, check_count);
 
 	return (check_count == count);
 }
@@ -67,7 +73,8 @@ int test_va_args(void)
 {
 	int fails = 0;
 	void *dev;
-	void *p1, *p2, *p3, *p4, *p5;
+	void *p1, *p2, *p3, *p4, *p5,
+	     *pa1, *pa2, *pa3, *pa4, *pa5;
 
 	printf("%s", __func__);
 
@@ -82,8 +89,20 @@ int test_va_args(void)
 	p3 = kmalloc(DEVICE_SIZE * 3, GFP_KERNEL);
 	p4 = kmalloc(DEVICE_SIZE * 4, GFP_KERNEL);
 	p5 = kmalloc(DEVICE_SIZE * 5, GFP_KERNEL);
+	pa1 = kmalloc(DEVICE_SIZE * 6, GFP_KERNEL);
+	pa2 = kmalloc(DEVICE_SIZE * 7, GFP_KERNEL);
+	pa3 = kmalloc(DEVICE_SIZE * 8, GFP_KERNEL);
+	pa4 = kmalloc(DEVICE_SIZE * 9, GFP_KERNEL);
+	pa5 = kmalloc(DEVICE_SIZE * 10, GFP_KERNEL);
 
+	fails += !basic_va_case(1, p1);
+	fails += !basic_va_case(2, p1, p2);
+	fails += !basic_va_case(3, p1, p2, p3);
+	fails += !basic_va_case(4, p1, p2, p3, p4);
 	fails += !basic_va_case(5, p1, p2, p3, p4, p5);
+	fails += !basic_va_case(10, p1, p2, p3, p4, p5, pa1, pa2, pa3, pa4, pa5);
+	fails += !basic_va_case(20, p1, p2, p3, p4, p5, pa1, pa2, pa3, pa4, pa5,
+			p1, p2, p3, p4, p5, pa1, pa2, pa3, pa4, pa5);
 
 	printf(" %s\n", (fails ? "FAILED" : "ok"));
 	return !fails;

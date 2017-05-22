@@ -80,10 +80,10 @@ $(MPX_TEST_BIN): $(MPX_TEST_OBJ)
 	$(CC) -mmpx -fcheck-pointer-bounds -o $(MPX_TEST_BIN) $(MPX_TEST_OBJ)
 
 # Need to compile MPX / MPX objects separately...
-test/%.mpxk.o: $(PLUGIN) test/%.c
+test/%.mpxk.o: $(PLUGIN) test/%.c test/test.h
 	$(CC) $(KERNEL_FLAGS) $(MPXK_CFLAGS) $(DUMP_FLAGS) -o $@ -c $(@:.mpxk.o=.c)
 
-test/%.mpx.o: $(PLUGIN) test/%.c
+test/%.mpx.o: $(PLUGIN) test/%.c test/test.h
 	$(CC) $(KERNEL_FLAGS) $(MPX_CFLAGS) -o $@ -c $(@:.mpx.o=.c)
 
 # Only MPXK uses the mpxk_functions!
