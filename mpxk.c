@@ -61,7 +61,7 @@ __visible int plugin_init(struct plugin_name_args *plugin_info, struct plugin_gc
 	register_callback(plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,
 			  get_mpxk_rm_bndstx_pass_info());
 
-	/* Replace wrappables with mpxk_wrappers. */
+	/* Brute force removal of all BNDSTX/BNDLDX instructions */
 	register_callback(plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,
 			  get_mpxk_sweeper_pass_info());
 
