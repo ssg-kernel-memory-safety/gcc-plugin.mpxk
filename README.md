@@ -33,3 +33,6 @@ run:
 make test
 ```
 
+## Limitations
+
+Function argument bounds are currently managed correctly only for void pointers!
