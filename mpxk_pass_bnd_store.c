@@ -63,8 +63,8 @@ static unsigned int mpxk_bnd_store_execute(void)
 				call = as_a<gcall *>(gsi_stmt(iter));
 				fndecl = gimple_call_fndecl(call);
 
-				/* Make sure the wrappers don't need this! */
-				gcc_assert(!mpxk_is_wrap_any(name));
+				/* Sanity check, the wrapper function should never end up here! */
+				gcc_assert(!mpxk_is_wrapper(name));
 
 				if (!fndecl)
 					break;

@@ -51,7 +51,6 @@ struct register_pass_info *get_mpxk_sweeper_pass_info(void);
 void mpxk_builitins_sanity_check(void);
 bool mpxk_is_wrappable(const char *name);
 bool mpxk_is_wrapper(const char *name);
-bool mpxk_is_wrap_any(const char *name);
 const char *mpxk_get_wrapper_name(const char *name);
 
 #ifdef MPXK_DEBUG

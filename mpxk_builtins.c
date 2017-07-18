@@ -66,14 +66,6 @@ bool mpxk_is_wrappable(const char *name)
 	return (bool) (mpxk_get_wrapper_name(name) != NULL);
 }
 
-bool mpxk_is_wrap_any(const char *name)
-{
-	gcc_assert(name != NULL);
-	return (mpxk_is_wrapper(name)
-		|| mpxk_is_wrappable(name)
-		|| mpxk_is_wrappable_chkp(name));
-}
-
 static int builtin_i(const char *name) {
 	gcc_assert(name != NULL);
 
