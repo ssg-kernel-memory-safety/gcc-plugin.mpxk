@@ -44,11 +44,16 @@ PLUGIN_FLAGS += -fPIC -shared -ggdb -Wall -W -fvisibility=hidden
 # Basic MPX configuration flags
 MPX_CFLAGS := -mmpx -fcheck-pointer-bounds -fno-chkp-narrow-bounds -fno-chkp-check-read
 
-# Flags using the MPXK plugin
-MPXK_CFLAGS := -fplugin=./$(PLUGIN) $(MPX_CFLAGS) -fno-chkp-store-bounds -fno-chkp-use-wrappers
+MPXK_PLUGIN := -fplugin=./$(PLUGIN) $(MPX_CFLAGS)
 
-# Flags used to compile support functions for mpxk (e.g. wrappers and load functions).
-MPXK_LIB_CFLAGS := $(MPXK_CFLAGS) -fno-chkp-check-write
+MPXK_CFLAGS := -mmpx -fcheck-pointer-bounds $(MPXK_PLUGIN)
+MPXK_CFLAGS += -fno-chkp-store-bounds
+MPXK_CFLAGS += -fno-chkp-use-wrappers
+
+MPXK_LIB_CFLAGS := $(MPXK_CFLAGS)
+MPXK_LIB_CFLAGS += -fno-chkp-narrow-bounds
+MPXK_LIB_CFLAGS += -fno-chkp-check-read
+MPXK_LIB_CFLAGS += -fno-chkp-check-write
 
 # Flags needed to "simulate" the Linux kernel KBuild setup (assumed by the mpxk plugin)
 KERNEL_FLAGS := -O2 -std=gnu89
