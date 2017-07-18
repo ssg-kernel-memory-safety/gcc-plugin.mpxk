@@ -55,12 +55,6 @@ __visible int plugin_init(struct plugin_name_args *plugin_info, struct plugin_gc
 	register_callback(plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,
 			  get_mpxk_cfun_args_pass_info());
 
-	/* Brute force approach of just dropping all BNDSTX instructions.
-	 * These get added in the RTL expand pass for function calls (and
-	 * potentially other cases */
-	register_callback(plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,
-			  get_mpxk_rm_bndstx_pass_info());
-
 	/* Brute force removal of all BNDSTX/BNDLDX instructions */
 	register_callback(plugin_name, PLUGIN_PASS_MANAGER_SETUP, NULL,
 			  get_mpxk_sweeper_pass_info());

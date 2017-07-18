@@ -45,7 +45,6 @@ struct register_pass_info *get_mpxk_wrappers_pass_info(void);
 struct register_pass_info *get_mpxk_wrap_funs_pass_info(void);
 struct register_pass_info *get_mpxk_bnd_store_pass_info(void);
 struct register_pass_info *get_mpxk_cfun_args_pass_info(void);
-struct register_pass_info *get_mpxk_rm_bndstx_pass_info(void);
 struct register_pass_info *get_mpxk_sweeper_pass_info(void);
 
 /* mpxk_builtins.c */
