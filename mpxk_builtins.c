@@ -21,7 +21,6 @@
 
 static int wrapper_i(const char *name);
 static int builtin_i(const char *name);
-static bool mpxk_is_wrappable_chkp(const char *name);
 
 struct mpxk_builtin {
 	const bool is_wrapper;
@@ -84,19 +83,6 @@ static int wrapper_i(const char *name) {
 	return (i == -1 ? -1 : (mpxk_fndecls[i].is_wrapper ? i : -1));
 }
 
-static bool mpxk_is_wrappable_chkp(const char *name)
-{
-	gcc_assert(name != NULL);
-	const int len = strlen(name) - strlen(CHKP_POSTFIX);
-
-	if (strstr(name, CHKP_POSTFIX) != (name + len))
-		return false;
-
-	char base_name[len+1] = {'\0'};
-	memcpy(base_name, name, len);
-	return mpxk_is_wrappable(base_name);
-}
-
 void mpxk_builitins_sanity_check(void)
 {
 	(void) gcc_version;
@@ -109,7 +95,6 @@ void mpxk_builitins_sanity_check(void)
 	gcc_assert(mpxk_is_wrapper("mpxk_wrapper_kmalloc"));
 	gcc_assert(mpxk_is_wrapper(MPXK_WRAPPER_PREFIX "kmalloc"));
 	gcc_assert(mpxk_is_wrappable("kmalloc"));
-	gcc_assert(mpxk_is_wrappable_chkp("kmalloc.chkp"));
 
 	gcc_assert(!mpxk_is_wrapper( MPXK_LOAD_BOUNDS_FN_NAME));
 	gcc_assert(builtin_i("kmalloc") < 0);
@@ -118,7 +103,6 @@ void mpxk_builitins_sanity_check(void)
 	gcc_assert(!mpxk_is_wrapper( "mpxk_wrapper_not_good_at_all"));
 	gcc_assert(!mpxk_is_wrapper( "_" MPXK_WRAPPER_PREFIX "kmalloc"));
 	gcc_assert(!mpxk_is_wrappable( MPXK_WRAPPER_PREFIX "kmalloc"));
-	gcc_assert(!mpxk_is_wrappable_chkp( MPXK_WRAPPER_PREFIX "kmalloc.chkp"));
 }
 
 #undef d
