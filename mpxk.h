@@ -16,12 +16,7 @@
 #define MPXK_LOAD_BOUNDS_FN_NAME "mpxk_load_bounds"
 #define MPXK_WRAPPER_PREFIX "mpxk_wrapper_"
 
-/* #define MPXK_DO_NOTHIN */
-/* #define MPXK_CRASH_ON_SWEEP */
 /* #define MPXK_DEBUG */
-/* #define MPXK_SUMMARY */
-#define MPXK_SWEEPER_DO_REMOVE
-/* #define MPXK_ONLY_PROCESS "netdev_emerg" */
 
 struct mpxk_bound_store_stats {
 	int dropped_ldx;
@@ -60,12 +55,9 @@ bool mpxk_is_wrapper(const char *name);
 bool mpxk_is_wrap_any(const char *name);
 const char *mpxk_get_wrapper_name(const char *name);
 
-/* TODO: Eventually remove these debugging macro printout thingies */
 #ifdef MPXK_DEBUG
-#define IF_MPXK_DEBUG(...) __VA_ARGS__
 #define dsay(...) print(__VA_ARGS__)
 #else
-#define IF_MPXK_DEBUG(...)
 #define dsay(...)
 #endif /* MPXK_DEBUG */
 

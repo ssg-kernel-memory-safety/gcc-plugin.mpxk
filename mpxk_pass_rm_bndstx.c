@@ -12,9 +12,6 @@
 #include <rtl.h>
 #include <print-rtl.h>
 
-/* #define d(...) dsay(__VA_ARGS__) */
-#define d(...)
-
 static unsigned int mpxk_rm_bndstx_execute(void);
 static bool insn_is_bndstx(rtx_insn *insn);
 
@@ -54,7 +51,7 @@ static unsigned int mpxk_rm_bndstx_execute(void)
 			if (insn_is_bndstx(insn)) {
 
 				loc = insn_location(insn);
-				d("removing bndstx %s:%d", loc.file, loc.line);
+				dsay("removing bndstx %s:%d", loc.file, loc.line);
 
 				/* Our wrappers should not have this problem! */
 				gcc_assert(!mpxk_is_wrap_any(cfun_name));
@@ -66,7 +63,7 @@ static unsigned int mpxk_rm_bndstx_execute(void)
 		bb = next;
 	} while (bb);
 
-	d("Found %d bndldx calls", found);
+	dsay("Found %d bndldx calls", found);
 	return 0;
 }
 

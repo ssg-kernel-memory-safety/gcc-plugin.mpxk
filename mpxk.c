@@ -76,33 +76,20 @@ static void mpxk_plugin_finish(void *gcc_data, void *user_data)
 {
 	(void) gcc_data;
 	(void) user_data;
+
+#ifdef MPXK_DEBUG
 	expanded_location loc = expand_location(input_location);
-#if defined(MPXK_DEBUG) || defined(MPXK_SUMMARY)
+
 	fprintf(stderr, "SUMMARY: bndstx[%d+%d=>%d], bndldx[%d+%d=>%d], wraps[%d] (%s)\n",
 			mpxk_stats.dropped_stx, mpxk_stats.dropped_stx_brute, mpxk_stats.sweep_stx,
 			mpxk_stats.dropped_ldx, mpxk_stats.cfun_ldx, mpxk_stats.sweep_ldx,
 			mpxk_stats.wrappers_added, loc.file);
 #endif
-
-#ifdef MPXK_CRASH_ON_SWEEP
-	if (mpxk_stats.sweep_ldx || mpxk_stats.sweep_stx) {
-		internal_error("Unhandled bndstx/bndldx instructions in %s\n", loc.file);
-	}
-#endif /* MPXK_CRASH_ON_SWEEP */
 }
 
 bool skip_execute(const char *attr) {
-#ifdef MPXK_DO_NOTHIN
-	return true;
-#endif /* MPXK_DO_NOTHIN */
 	if (attr != NULL && lookup_attribute(attr, DECL_ATTRIBUTES(cfun->decl)) != NULL)
 		return true;
-#ifdef MPXK_ONLY_PROCESS
-	const char *name = DECL_NAME_POINTER(current_function_decl);
-	if (0 != strcmp(MPXK_ONLY_PROCESS, name) &&
-			0 != strcmp(MPXK_ONLY_PROCESS ".chkp", name))
-		return true;
-#endif /* MPXK_ONLY_PROCESS */
 	return false;
 }
 

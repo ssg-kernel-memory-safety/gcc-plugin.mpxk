@@ -14,9 +14,6 @@
 #include "mpxk.h"
 #include <ipa-chkp.h>
 
-/* #define d(...) dsay(__VA_ARGS__) */
-#define d(...)
-
 static unsigned int mpxk_wrappers_execute(void);
 static void mpxk_wrappers_gimple_call(gimple_stmt_iterator *gsi);
 
@@ -60,7 +57,7 @@ static unsigned int mpxk_wrappers_execute(void)
 			if (gimple_code(stmt) == GIMPLE_CALL) {
 				fndecl = gimple_call_fndecl(as_a <gcall *>(stmt));
 				if (fndecl && mpxk_is_wrappable(DECL_NAME_POINTER(fndecl))) {
-					d("inserting wrapper for %s", DECL_NAME_POINTER(fndecl));
+					dsay("inserting wrapper for %s", DECL_NAME_POINTER(fndecl));
 					mpxk_wrappers_gimple_call(&iter);
 				}
 			}
@@ -126,7 +123,7 @@ static void mpxk_wrappers_gimple_call(gimple_stmt_iterator *gsi)
 
 	mpxk_stats.wrappers_added++;
 
-	d("inserted %s at %s:%d\n", new_name, gimple_filename(call), gimple_lineno(call));
+	dsay("inserted %s at %s:%d\n", new_name, gimple_filename(call), gimple_lineno(call));
 }
 
 #undef d

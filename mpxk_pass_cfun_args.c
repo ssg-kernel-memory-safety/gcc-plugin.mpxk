@@ -18,10 +18,6 @@
 #include <tree-chkp.h>
 
 static unsigned int mpxk_cfun_args_execute(void);
-/* static void insert_bug_guard_assign(gimple_stmt_iterator *gsi, tree pointer, tree bounds); */
-
-/* #define d(...) dsay(__VA_ARGS__) */
-#define d(...)
 
 #define PASS_NAME mpxk_cfun_args
 #define NO_GATE
@@ -68,7 +64,7 @@ static unsigned int mpxk_cfun_args_execute(void)
 
 			/* Process only bounds becyond the available register count */
 			if (bound_count > MPXK_BND_REGISTER_COUNT) {
-				d("resetting bound argument #%d", bound_count);
+				dsay("resetting bound argument #%d", bound_count);
 
 				gcc_assert(prev != NULL);
 
@@ -77,10 +73,10 @@ static unsigned int mpxk_cfun_args_execute(void)
 
 			} else if (arg_count > 6) {
 				/* FIXME: Might have been a side-effect of something else? */
-				/* This seems to be a bug/feature. If a poinrter is becyond
+				/* This seems to be a bug/feature. If a pointer is beyond
 				 * the sixth (non-bound) argument, then we're using bndstx
 				 * bndldx whether or not registers would be available. */
-				d("resetting bound argument #%d (ptr > #6)", bound_count);
+				dsay("resetting bound argument #%d (ptr > #6)", bound_count);
 				gcc_assert(prev != NULL);
 				insert_mpxk_bound_load(&iter, prev, l);
 			}
@@ -89,7 +85,7 @@ static unsigned int mpxk_cfun_args_execute(void)
 			/* *p = TREE_CHAIN(l); */
 			p = &TREE_CHAIN(l);
 		} else {
-			d("skipping non-bound argument #%d", arg_count);
+			dsay("skipping non-bound argument #%d", arg_count);
 			prev = l;
 			arg_count++;
 			p = &TREE_CHAIN(l);
@@ -103,7 +99,7 @@ static unsigned int mpxk_cfun_args_execute(void)
 			(bound_count - MPXK_BND_REGISTER_COUNT));
 
 	mpxk_stats.cfun_ldx += bound_count;
-	d("replaced %d bound args with mpkx_load_bounds", bound_count);
+	dsay("replaced %d bound args with mpkx_load_bounds", bound_count);
 	return 0;
 }
 

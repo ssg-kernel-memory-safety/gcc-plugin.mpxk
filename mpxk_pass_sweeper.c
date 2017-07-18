@@ -9,9 +9,6 @@
 #include <rtl.h>
 #include <print-rtl.h>
 
-/* #define d(...) dsay(__VA_ARGS__) */
-#define d(...)
-
 static unsigned int mpxk_sweeper_execute(void);
 static bool contains_unspec(rtx pattern, const int code);
 
@@ -55,29 +52,17 @@ static unsigned int mpxk_sweeper_execute(void)
 
 			if (r != NULL) {
 				if (contains_unspec(r, UNSPEC_BNDSTX)) {
-#ifndef MPXK_SWEEPER_DO_REMOVE
-					dsay("SWEEPER_ERROR => found bndstx at %s:%ds",
-							loc.file, loc.line);
-#else /* MPXK_SWEEPER_DO_REMOVE */
 					dsay("SWEEPER_WARNING => removed bndstx at %s:%d",
 							loc.file, loc.line);
-					/* These aren't sticking ? */
 					delete_insn(insn);
-#endif /* MPXK_SWEEPER_DO_REMOVE */
 					mpxk_stats.sweep_stx++;
 					found++;
 				}
 				if (contains_unspec(r, UNSPEC_BNDLDX) ||
-						contains_unspec(r, UNSPEC_BNDLDX_ADDR)) {
-#ifndef MPXK_SWEEPER_DO_REMOVE
-					dsay("SWEEPER_ERROR => found bndldx at %s:%d",
-							loc.file, loc.line);
-#else /* MPXK_SWEEPER_DO_REMOVE */
+				    contains_unspec(r, UNSPEC_BNDLDX_ADDR)) {
 					dsay("SWEEPER_WARNING => removed bndldx at %s:%d",
 							loc.file, loc.line);
-					/* These aren't sticking ? */
 					delete_insn(insn);
-#endif /* MPXK_SWEEPER_DO_REMOVE */
 					mpxk_stats.sweep_ldx++;
 					found++;
 				}
@@ -87,14 +72,6 @@ static unsigned int mpxk_sweeper_execute(void)
 	} while (bb);
 
 	loc = expand_location(DECL_SOURCE_LOCATION(current_function_decl));
-	d("found %d problems", found);
-
-#ifdef MPXK_CRASH_ON_SWEEP
-	if (found)
-		internal_error("Unhandled bndstx/bndldx instructions in %s:%d:%s\n",
-				loc.file, loc.line, DECL_NAME_POINTER(current_function_decl));
-#endif /* MPXK_CRASH_ON_SWEEP */
-
 	return 0;
 }
 

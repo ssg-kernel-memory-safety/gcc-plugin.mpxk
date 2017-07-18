@@ -16,9 +16,6 @@
 #include <ipa-chkp.h>
 #include <tree-chkp.h>
 
-/* #define d(...) dsay(__VA_ARGS__) */
-#define d(...)
-
 static unsigned int mpxk_bnd_store_execute(void);
 
 static void handle_ldx(gimple_stmt_iterator *gsi, gcall *call);
@@ -97,7 +94,7 @@ static unsigned int mpxk_bnd_store_execute(void)
  */
 static void handle_stx(gimple_stmt_iterator *gsi, gcall *call)
 {
-	d("removed bndstx call in at %s:%d\n", gimple_filename(call), gimple_lineno(call));
+	dsay("removed bndstx call in at %s:%d\n", gimple_filename(call), gimple_lineno(call));
 	gcc_assert(!strcmp(DECL_NAME_POINTER(gimple_call_fndecl(call)),
 				"__builtin_ia32_bndstx"));
 
@@ -125,7 +122,7 @@ static void handle_ldx(gimple_stmt_iterator *gsi, gcall *call)
 {
 	tree orig_ptr, bounds;
 
-	d("replaced bndldx call in at %s:%d", gimple_filename(call), gimple_lineno(call));
+	dsay("replaced bndldx call in at %s:%d", gimple_filename(call), gimple_lineno(call));
 	gcc_assert(!strcmp(DECL_NAME_POINTER(gimple_call_fndecl(call)),
 				"__builtin_ia32_bndldx"));
 
