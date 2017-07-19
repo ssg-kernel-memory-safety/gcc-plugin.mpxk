@@ -12,21 +12,9 @@ int test_complex_func(void);
 #define test __attribute__((noinline))
 #define test_legacy __attribute__((noinline)) __attribute__((bnd_legacy))
 
-__attribute__((always_inline)) __attribute__((bnd_legacy))
-inline static int __assert_bnds(unsigned long e, unsigned long w,
-		const char *file, const int linenr, const char *func)
-{
-	if (e == w)
-		return 1;
-	fprintf(stderr, "%s:%d:%s: bounds assertion failed, expected %lu, was %lu\n",
-			file, linenr, func, e, w);
-	return 0;
-}
-
-#define assert_bnds(p, e)  __assert_bnds((e), 1 + 		\
-		((unsigned long) __bnd_get_ptr_ubound(p) -  	\
-		(unsigned long) __bnd_get_ptr_lbound(p)), 	\
-		__FILE__, __LINE__, __func__)
+#define assert_bnds(p, e)  __assert_bnds((p), (e), __FILE__, __LINE__, __func__)
+int __assert_bnds(const void *p, unsigned long e,
+		const char *file, const int linenr, const char *func);
 
 #define fail_msg(...) do {		\
 	fprintf(stderr, __VA_ARGS__);	\

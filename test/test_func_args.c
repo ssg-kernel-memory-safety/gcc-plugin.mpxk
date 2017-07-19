@@ -23,17 +23,28 @@ static int the_sixth_and_beyond(int i1, int i2, int i3, int i4, int i5, int i6, 
 }
 
 test
+static int non_void_sixth(int i1, int i2, int i3, int i4, int i5, int i6, char *ptr)
+{
+	assert_bnds(ptr, PTR_SIZE);
+	return i1 + i2 + i3 + i4 + i5 + i6;
+}
+
+test
 int test_func_args(void)
 {
 	printf("%s", __func__);
 	int fails = 0;
 	void *ptr;
+	char *c_ptr;
 
 	/* Test the case from net/core/dev.c */
 	ptr = kmalloc(PTR_SIZE, GFP_KERNEL);
 
+	c_ptr = ptr;
+
 	fails += !the_sixth(1, 2, 3, 4, 5, ptr);
 	fails += !the_sixth_and_beyond(1,2,3,4,5,6, ptr);
+	fails += !non_void_sixth(1,2,3,4,5,6, c_ptr);
 
 	kfree(ptr);
 

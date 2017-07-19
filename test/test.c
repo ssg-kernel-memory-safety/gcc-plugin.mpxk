@@ -17,3 +17,18 @@ int main(int argc, char **argv)
 
 	return (fails ? -1 : 0);
 }
+
+int __assert_bnds(const void *p, unsigned long e,
+		const char *file, const int linenr, const char *func)
+{
+	unsigned long w;
+
+	w = 1ul + (unsigned long) __bnd_get_ptr_ubound(p) -
+		  (unsigned long) __bnd_get_ptr_lbound(p);
+	if (e == w)
+		return 1;
+	fprintf(stderr, "%s:%d:%s: bounds assertion failed, expected %lu, was %lu\n",
+			file, linenr, func, e, w);
+	return 0;
+}
+
