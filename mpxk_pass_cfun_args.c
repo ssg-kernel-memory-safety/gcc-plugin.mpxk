@@ -62,27 +62,20 @@ static unsigned int mpxk_cfun_args_execute(void)
 
 			iter = gsi_start_bb(bb);
 
-			/* Process only bounds becyond the available register count */
-			if (bound_count > MPXK_BND_REGISTER_COUNT) {
-				dsay("resetting bound argument #%d", bound_count);
-
-				gcc_assert(prev != NULL);
-
-				/* Insert MPXK bound load for the encountered bounds */
-				insert_mpxk_bound_load(&iter, prev, l);
-
-			} else if (arg_count > 6) {
-				/* FIXME: Might have been a side-effect of something else? */
-				/* This seems to be a bug/feature. If a pointer is beyond
-				 * the sixth (non-bound) argument, then we're using bndstx
-				 * bndldx whether or not registers would be available. */
+			/* Add manual bound load for bounds passed via BNDSTX+BNDLDX.
+			 * This happens in two scenarios handled here:
+			 * 	- There are more bounds than available registers (>4)
+			 * 	- The bounds are for arguments beyond the sixth argument,
+			 * 	  this is *feature* seems to be related to how non-bound
+			 * 	  arguments are treated (i.e. 6 args are passed via regs
+			 * 	  before using the stack for arguments).
+			 */
+			if (bound_count > MPXK_BND_REGISTER_COUNT ||arg_count > 6) {
 				dsay("resetting bound argument #%d (ptr > #6)", bound_count);
 				gcc_assert(prev != NULL);
 				insert_mpxk_bound_load(&iter, prev, l);
 			}
 
-			/* Leave the arg, optimizer should fix this */
-			/* *p = TREE_CHAIN(l); */
 			p = &TREE_CHAIN(l);
 		} else {
 			dsay("skipping non-bound argument #%d", arg_count);
