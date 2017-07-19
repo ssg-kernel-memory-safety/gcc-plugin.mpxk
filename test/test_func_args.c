@@ -8,24 +8,37 @@
 
 #define PTR_SIZE 634
 
+struct node {
+	int i;
+	int j;
+	struct the_struct *node;
+};
+
 test
-static int the_sixth(int i1, int i2, int i3, int i4, int i5, void *ptr)
+int the_sixth(int i1, int i2, int i3, int i4, int i5, void *ptr)
 {
 	assert_bnds(ptr, PTR_SIZE);
 	return i1 + i2 + i3 + i4 + i5;
 }
 
 test
-static int the_sixth_and_beyond(int i1, int i2, int i3, int i4, int i5, int i6, void *ptr)
+int the_sixth_and_beyond(int i1, int i2, int i3, int i4, int i5, int i6, void *ptr)
 {
 	assert_bnds(ptr, PTR_SIZE);
 	return i1 + i2 + i3 + i4 + i5 + i6;
 }
 
 test
-static int non_void_sixth(int i1, int i2, int i3, int i4, int i5, int i6, char *ptr)
+int non_void_sixth(int i1, int i2, int i3, int i4, int i5, int i6, char *ptr)
 {
 	assert_bnds(ptr, PTR_SIZE);
+	return i1 + i2 + i3 + i4 + i5 + i6;
+}
+
+test
+int linked_list(int i1, int i2, int i3, int i4, int i5, int i6, struct node *list)
+{
+	assert_bnds(list, PTR_SIZE * sizeof(struct node));
 	return i1 + i2 + i3 + i4 + i5 + i6;
 }
 
@@ -42,9 +55,12 @@ int test_func_args(void)
 
 	c_ptr = ptr;
 
+	struct node *list = kmalloc(PTR_SIZE * (sizeof(struct node)), GFP_KERNEL);
+
 	fails += !the_sixth(1, 2, 3, 4, 5, ptr);
 	fails += !the_sixth_and_beyond(1,2,3,4,5,6, ptr);
 	fails += !non_void_sixth(1,2,3,4,5,6, c_ptr);
+	fails += !linked_list(1,2,3,4,5,6, list);
 
 	kfree(ptr);
 
