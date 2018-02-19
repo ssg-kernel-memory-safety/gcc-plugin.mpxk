@@ -1,5 +1,11 @@
-/* Test for issue with how va_arg functions are handled.
- * Is at presnet a problem in various kernel functions */
+/*
+ * Author: Hans Liljestrand <LiljestrandH@gmail.com>
+ * Copyright: Secure Systems Group, Aalto University, ssg.aalto.fi
+ *
+ * Test for issue with how va_arg functions are handled. Is at presnet a
+ * problem in various kernel functions
+ */
+
 #include "test.h"
 #include "mock_kernel.h"
 #include <stdarg.h>

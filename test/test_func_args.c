@@ -1,7 +1,13 @@
-/* Test function bounds parameter propagation, there seems to be some cases where argument bounds
- * get passed via bndstx/bndldx even if registers were available. Namely, it seems that arguments
- * beyond the 6th sometimes have their bounds passed via registers regardless of free bnd
- * registers. This could also be an artefact of something completely different... */
+/*
+ * Author: Hans Liljestrand <LiljestrandH@gmail.com>
+ * Copyright: Secure Systems Group, Aalto University, ssg.aalto.fi
+ *
+ * Test function bounds parameter propagation, there seems to be some cases
+ * where argument bounds get passed via bndstx/bndldx even if registers were
+ * available. Namely, it seems that arguments beyond the 6th sometimes have
+ * their bounds passed via registers regardless of free bnd registers. This
+ * could also be an artefact of something completely different...
+ */
 
 #include "test.h"
 #include "mock_kernel.h"

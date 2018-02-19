@@ -1,6 +1,10 @@
 /*
- * This is a horrilb dump site for (potentially temporary) LKDTM tests that are meant for in-kernel
- * runtime testing. Allows running the same tests in a stand-alone fashion outside the kernel.
+ * Author: Hans Liljestrand <LiljestrandH@gmail.com>
+ * Copyright: Secure Systems Group, Aalto University, ssg.aalto.fi
+ *
+ * This is a horrilb dump site for (potentially temporary) LKDTM tests that are
+ * meant for in-kernel runtime testing. Allows running the same tests in a
+ * stand-alone fashion outside the kernel.
  */
 
 #include "test.h"

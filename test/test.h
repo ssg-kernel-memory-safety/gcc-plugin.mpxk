@@ -1,3 +1,7 @@
+/*
+ * Author: Hans Liljestrand <LiljestrandH@gmail.com>
+ * Copyright: Secure Systems Group, Aalto University, ssg.aalto.fi
+ */
 #ifndef _MPXK_TEST_H_
 #define _MPXK_TEST_H_
 

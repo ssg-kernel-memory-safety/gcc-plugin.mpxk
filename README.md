@@ -36,3 +36,7 @@ make test
 ## Limitations
 
 Function argument bounds are currently managed correctly only for void pointers!
+
+## External code
+
+The `gcc*` and `Makefile` files are based on Linux source-code, with originals found under `scripts/gcc-plugins/`.

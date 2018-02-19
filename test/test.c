@@ -1,3 +1,7 @@
+/*
+ * Author: Hans Liljestrand <LiljestrandH@gmail.com>
+ * Copyright: Secure Systems Group, Aalto University, ssg.aalto.fi
+ */
 #include "test.h"
 
 int main(int argc, char **argv)

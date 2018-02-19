@@ -1,7 +1,8 @@
 /*
  * mpxk.h - MPXK plugin main header
  *
- * Copyright (C) 2017 Hans Liljestrand <LiljestrandH@gmail.com>
+ * Author: Hans Liljestrand <LiljestrandH@gmail.com>
+ * Copyright: Secure Systems Group, Aalto University, ssg.aalto.fi
  *
  * This file is released under the GPLv2.
  */

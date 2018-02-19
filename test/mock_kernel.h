@@ -1,3 +1,7 @@
+/*
+ * Author: Hans Liljestrand <LiljestrandH@gmail.com>
+ * Copyright: Secure Systems Group, Aalto University, ssg.aalto.fi
+ */
 #ifndef _MOCK_KERNEL_H_
 #define _MOCK_KERNEL_H_
 
